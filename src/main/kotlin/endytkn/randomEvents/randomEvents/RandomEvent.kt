@@ -1,6 +1,7 @@
 package endytkn.randomEvents.randomEvents
 
 import endytkn.randomEvents.minecraftEventsObservers.MinecraftEventsObservers
+import endytkn.randomEvents.titleManager.TitleManager
 import endytkn.randomEvents.utils.Observer
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
@@ -92,7 +93,10 @@ open class RandomEvent(val level: Level, val targetBlock: BlockPos) {
 
     open fun onPrepare() {}
 
-    open fun onReady() {}
+    open fun onReady() {
+        println("onReady")
+        TitleManager.showTitle("Something is happening nearby")
+    }
 
     open fun resolve() {
         setEventStatus(RandomEventStatus.FINISHING_SUCCESS)
