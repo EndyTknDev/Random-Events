@@ -17,6 +17,10 @@ import thedarkcolour.kotlinforforge.forge.runForDist
  *
  * An example for blocks is in the `blocks` package of this mod.
  */
+
+import endytkn.randomEvents.events.CommandRegister  // Importa o registrador de eventos
+
+
 @Mod(RandomEventsMod.ID)
 object RandomEventsMod {
     const val ID = "randomevents"
@@ -34,6 +38,7 @@ object RandomEventsMod {
                 MOD_BUS.addListener(::onServerSetup)
                 "test"
             })
+        CommandRegister
     }
 
     /**
