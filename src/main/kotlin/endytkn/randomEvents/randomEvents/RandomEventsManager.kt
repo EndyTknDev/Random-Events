@@ -95,12 +95,12 @@ object RandomEventsManager {
     }
 
     private fun tryEvent() {
-        println("TRY EVENT")
         val proximityGroups = groupPlayersByProximity()
         for ((_, group) in proximityGroups.withIndex()) {
             val player = group[0]
             val biomeKey = getPlayerBiomeKey(player)
             val isUnderground = isPlayerUnderground(player)
+            if (isUnderground) return
             val chunk = findEventChunk(player)
             if (chunk == null) continue
             val chunkPosition = findRandomChunkPosition(chunk)

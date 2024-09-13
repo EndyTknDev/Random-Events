@@ -1,5 +1,6 @@
 package endytkn.randomEvents.randomEvents.events
 
+import endytkn.randomEvents.randomEvents.RandomEvent
 import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
@@ -7,7 +8,7 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate
 
-open class SpawnStructureEvent(level: Level, targetBlock: BlockPos, val modId: String, val structureName: String): GroupFightEvent(level, targetBlock) {
+open class SpawnStructureEvent(level: Level, targetBlock: BlockPos, val modId: String, val structureName: String): RandomEvent(level, targetBlock) {
     fun spawnStructure() {
         val structureManager = level.server?.structureManager
         if (structureManager == null || level !is ServerLevel) return

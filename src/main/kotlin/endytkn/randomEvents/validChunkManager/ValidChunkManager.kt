@@ -14,9 +14,9 @@ import net.minecraftforge.fml.common.Mod
 @Mod.EventBusSubscriber
 object ValidChunkManager {
     var chunkData: ChunkMapData = ChunkMapData();
-
     private const val buildingThreshold = 90
     private const val CHUNK_MAP_NAME = "chunk_map_data"
+
     init {
         val serverLevel = getServerLevel(Level.OVERWORLD)
         if (serverLevel != null) {

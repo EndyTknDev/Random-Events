@@ -5,95 +5,175 @@ import endytkn.randomEvents.randomEvents.RandomEvent
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.Mob
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 import net.minecraftforge.event.entity.living.LivingDeathEvent
+import net.minecraftforge.event.entity.living.LivingDropsEvent
 import java.util.UUID
 
-open class GroupFightEvent(level: Level, targetBlock: BlockPos) : RandomEvent(level, targetBlock) {
-    protected val group1: MutableList<Mob> = mutableListOf()
-    protected val group2: MutableList<Mob> = mutableListOf()
-    protected val entities1 = mutableMapOf<UUID, Mob>()
-    protected val entities2 = mutableMapOf<UUID, Mob>()
+class GroupFight(private val groupName: String, private val groupHates: String, private var entities: MutableMap<UUID, Mob>) {
+    private var entitiesLeft: Int = entities.size;
+    private var entitiesKilled: MutableMap<UUID, Mob> = mutableMapOf<UUID, Mob>()
+
+    fun killEntities(uuid: UUID) {
+        val killedMob = entities.remove(uuid)
+        if (killedMob == null) return
+        entitiesKilled.put(uuid, killedMob)
+        entitiesLeft = entities.size
+    }
+
+    fun getEntities(): MutableMap<UUID, Mob> {
+        return entities
+    }
+
+    fun getEntitiesList(): MutableCollection<Mob> {
+        return entities.values
+    }
+
+    fun getEntitiesKilled(): MutableMap<UUID, Mob> {
+        return entitiesKilled
+    }
+
+    fun entitiesKilledList(): MutableCollection<Mob> {
+        return entitiesKilled.values
+    }
+
+    fun getGroupName(): String {
+        return groupName
+    }
+
+    fun getEntitiesLeft(): Int {
+        return entitiesLeft
+    }
+
+    fun getGroupHates(): String {
+        return groupHates
+    }
+}
+
+open class GroupFightEvent(level: Level, targetBlock: BlockPos, val removeDrops: Boolean) : RandomEvent(level, targetBlock) {
+    protected val mobGroupies: MutableMap<String, GroupFight> = mutableMapOf()
+    protected val playersInEvents = mutableListOf<Player>()
 
     override fun onPrepare() {
-        val entitiesList1 = spawnMobsByGroup(group1)
-        val entitiesList2 = spawnMobsByGroup(group2)
-        addToGroup(entitiesList1, entities1)
-        addToGroup(entitiesList2, entities2)
+        spawnMobs()
+
         startFighting()
         MinecraftEventsObservers.onLivingDeathEventObserver += ::onMobDeath
+        if (removeDrops) {
+            MinecraftEventsObservers.onLivingDropsEventObserver += ::onRemoveDrops
+        }
         super.onPrepare()
+    }
+
+    fun onRemoveDrops(event: LivingDropsEvent) {
+        val entity = event.entity
+        val level = entity.level()
+        if (entity !is Mob) return
+        val group = getEntityGroup(entity)
+        if (!level.isClientSide and (group != null)) {
+            event.drops.clear()
+            event.isCanceled = true
+        }
     }
 
     override fun onFinishing() {
         super.onFinishing()
         MinecraftEventsObservers.onLivingDeathEventObserver -= ::onMobDeath
-    }
-
-     private fun addToGroup(mobList: MutableList<Mob>, group: MutableMap<UUID, Mob>): MutableMap<UUID, Mob> {
-        for (mob in mobList) {
-            group.put(mob.uuid, mob)
+        if (removeDrops) {
+            MinecraftEventsObservers.onLivingDropsEventObserver -= ::onRemoveDrops
         }
-         return group;
     }
 
     override fun onReady() {
         super.onReady()
-        for (mob1 in entities1.values) {
-            mob1.isNoAi = false
-        }
-        for (mob2 in entities2.values) {
-            mob2.isNoAi = false
-        }
-    }
-
-    private fun spawnMobsByGroup(group: MutableList<Mob>): MutableList<Mob> {
-        val entities = mutableListOf<Mob>()
-        for (mob in group) {
-            mob.setPos(Vec3(targetBlock.x.toDouble(), targetBlock.y.toDouble(), targetBlock.z.toDouble()))
-            mob.setPersistenceRequired()
-            mob.isNoAi = true
-            level.addFreshEntity(mob)
-            entities.add(mob)
-        }
-        return entities
-    }
-
-    private fun startFighting() {
-        for (mob1 in entities1.values) {
-            for (mob2 in entities2.values) {
-                initiateFight(mob1, mob2)
+        for (group in mobGroupies.values) {
+            for (mob in group.getEntities().values) {
+                mob.isNoAi = false
             }
         }
     }
 
+    private fun spawnMobs() {
+        for (group in mobGroupies.values) {
+            for (mob in group.getEntities().values) {
+                mob.setPos(Vec3(targetBlock.x.toDouble(), targetBlock.y.toDouble(), targetBlock.z.toDouble()))
+                mob.setPersistenceRequired()
+                mob.isNoAi = true
+                level.addFreshEntity(mob)
+            }
+        }
+    }
+
+    private fun startFighting() {
+        for (group in mobGroupies.values) {
+            for (mob in group.getEntities().values) {
+                fightNextTarget(group, mob)
+            }
+        }
+    }
+
+    private fun fightNextTarget(group: GroupFight, mob: Mob) {
+        val hatedGroup = mobGroupies[group.getGroupHates()]
+        if (hatedGroup == null) return
+        var mostCloseMob: Mob? = null
+        var mostCloseDistance = 10000000
+        for (targetMob in hatedGroup.getEntities().values) {
+            val distance = mob.distanceTo(targetMob)
+            if (distance < mostCloseDistance) {
+                mostCloseMob = targetMob
+            }
+        }
+        if (mostCloseMob == null) return
+        initiateFight(mob, mostCloseMob)
+    }
+
+    override fun resolve() {
+
+    }
+
+    fun getEntityGroup(entity: Entity): GroupFight? {
+        for (group in mobGroupies.values) {
+            if (group.getEntities().contains(entity.uuid)) {
+                group.killEntities(entity.uuid)
+                return group
+            }
+        }
+        return null
+    }
+
     fun onMobDeath(event: LivingDeathEvent) {
         val entity = event.entity
-        val uuid1 = entities1.remove(entity.uuid)
-        val uuid2 = entities2.remove(entity.uuid)
+        val group = getEntityGroup(entity)
+        if (group == null) return
 
-        if (entities1.values.size == 0 && entities2.values.size == 0) {
+        if (isAllMobsDead()) {
             resolve()
             return
         }
-        if (uuid1 == null && uuid2 == null) return
         startFighting()
+    }
+
+    fun isAllMobsDead(): Boolean {
+        for (group in mobGroupies.values) {
+            if (group.getEntitiesLeft() > 0) return false
+        }
+        return true
     }
 
     override fun onFinishingCanceled() {
         super.onFinishingCanceled()
-        for (mob in entities1.values) {
-            mob.remove(Entity.RemovalReason.DISCARDED)
-        }
-        for (mob in entities2.values) {
-            mob.remove(Entity.RemovalReason.DISCARDED)
+        for (group in mobGroupies.values) {
+            for (mob in group.getEntities().values) {
+                mob.remove(Entity.RemovalReason.DISCARDED)
+            }
         }
     }
 
+
     private fun initiateFight(mob1: Mob, mob2: Mob) {
-        // Implement logic to make mob1 and mob2 fight
-        mob1.target = mob2
-        mob2.target = mob1
+            mob1.target = mob2
+            mob2.target = mob1
     }
 }
