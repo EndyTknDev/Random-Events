@@ -59,6 +59,10 @@ object RandomEventsManager {
         }
     }
 
+    fun triggerNewEvent() {
+        setStatus(RandomEventsManagerStatus.TRY_EVENT)
+    }
+    
     fun getEvents(): MutableMap<UUID, RandomEvent> {
         return events
     }
@@ -200,4 +204,6 @@ object RandomEventsManager {
         val world = player.level();
         return world.dimensionType().hasSkyLight() && !world.canSeeSky(playerPos);
     }
+
+    
 }
