@@ -1,6 +1,5 @@
 package endytkn.randomEvents.randomEvents
 
-import endytkn.randomEvents.randomEvents.events.ZombieSkeletonFightEvent
 import endytkn.randomEvents.utils.Observer
 import endytkn.randomEvents.validChunkManager.ValidChunkManager
 import net.minecraft.client.Minecraft
@@ -31,7 +30,7 @@ enum class RandomEventsManagerStatus {
 
 @Mod.EventBusSubscriber
 object RandomEventsManager {
-    private const val eventInterval: Int = 20 * 20
+    private const val eventInterval: Int = 20 * 60 * 20
     private var eventIntervalLeft: Int = eventInterval
     private var status: RandomEventsManagerStatus = RandomEventsManagerStatus.TICKING
     private val onChangeStatusObserver = Observer<RandomEventsManagerStatus>()
@@ -62,7 +61,7 @@ object RandomEventsManager {
     fun triggerNewEvent() {
         setStatus(RandomEventsManagerStatus.TRY_EVENT)
     }
-    
+
     fun getEvents(): MutableMap<UUID, RandomEvent> {
         return events
     }
@@ -109,8 +108,9 @@ object RandomEventsManager {
             if (chunk == null) continue
             val chunkPosition = findRandomChunkPosition(chunk)
             if (chunkPosition == null) continue
-            val newEvent = ZombieSkeletonFightEvent(player.level(), chunkPosition)
-            player.sendSystemMessage(Component.literal("novo evento apareceu ${chunkPosition.x}, ${chunkPosition.y}, ${chunkPosition.z}"))
+            val newEvent = RandomEventChooser.getEvent(player.level(), chunkPosition, isUnderground, biomeKey, false)
+            newEvent.initEvent(player.level(), chunkPosition, group)
+            player.sendSystemMessage(Component.literal("novo evento apareceu ${chunkPosition.x}, ${chunkPosition.y}, ${chunkPosition.z} ${newEvent.title} "))
             addEvent(newEvent)
             newEvent.start()
         }
@@ -205,5 +205,5 @@ object RandomEventsManager {
         return world.dimensionType().hasSkyLight() && !world.canSeeSky(playerPos);
     }
 
-    
+
 }

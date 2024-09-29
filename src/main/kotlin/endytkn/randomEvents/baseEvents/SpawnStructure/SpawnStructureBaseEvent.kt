@@ -1,23 +1,27 @@
-package endytkn.randomEvents.randomEvents.events
+package endytkn.randomEvents.baseEvents.SpawnStructure
 
 import endytkn.randomEvents.randomEvents.RandomEvent
 import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.level.Level
+import net.minecraft.world.level.ServerLevelAccessor
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate
 
-open class SpawnStructureEvent(level: Level, targetBlock: BlockPos, val modId: String, val structureName: String): RandomEvent(level, targetBlock) {
+open class SpawnStructureBaseEvent(val modId: String, val structureName: String): RandomEvent() {
+    companion object {
+        val name: String = "spawn_structure"
+    }
+
     fun spawnStructure() {
-        val structureManager = level.server?.structureManager
+        val structureManager = this.level!!.server?.structureManager
         if (structureManager == null || level !is ServerLevel) return
-        val structurePos = BlockPos(targetBlock.x, targetBlock.y - 1, targetBlock.z)
+        val structurePos = BlockPos(targetBlock!!.x, targetBlock!!.y - 1, targetBlock!!.z)
         try {
             val template: StructureTemplate? = structureManager.getOrCreate(ResourceLocation(modId, structureName))
             if (template == null) return
             val settings = StructurePlaceSettings()
-            template.placeInWorld(level, structurePos, structurePos, settings, level.random, 2)
+            template.placeInWorld(this.level!! as ServerLevelAccessor, structurePos, structurePos, settings, this.level!!.random, 2)
         } catch(e: Error) {
             return
         }
