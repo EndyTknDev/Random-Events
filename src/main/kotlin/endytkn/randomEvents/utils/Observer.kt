@@ -12,7 +12,9 @@ class Observer<T> {
     }
 
     operator fun invoke(value: T) {
-        for (observer in observers)
-            observer(value)
+        for (observer in observers.toList())
+            if (observer != null) {
+                observer(value)
+            }
     }
 }

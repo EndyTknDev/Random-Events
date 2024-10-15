@@ -1,8 +1,11 @@
 package endytkn.randomEvents.randomEvents
 
+import endytkn.randomEvents.events.AbandonedWolfEvent
 import endytkn.randomEvents.events.NetherInvasionEvent
-import endytkn.randomEvents.events.NetherPortalEvent
+import endytkn.randomEvents.events.PillagerAmbushVillagerEvent
 import endytkn.randomEvents.events.SkeletonFightEvent
+import endytkn.randomEvents.events.VillagerTrapEvent
+import endytkn.randomEvents.events.ZombieFightEvent
 import endytkn.randomEvents.events.ZombieSkeletonFightEvent
 
 enum class RandomEventsCategories {
@@ -36,6 +39,7 @@ object RandomEventRegisters {
 
     var RANDOM_EVENTS = mutableMapOf<RandomEventsCategories, MutableMap<RandomEventsRarity, kotlin.collections.MutableList<RandomEvent>>>()
 
+    var EVENTS_BY_TAGS = mutableMapOf<String, RandomEvent>()
     //val ZOMBIE_SKELETON_EVENT: RegistryObject<ZombieSkeletonFightEvent> = RANDOM_EVENT_REGISTRY.register(ZombieSkeletonFightEvent.name, ::ZombieSkeletonFightEvent)
     //val NETHER_PORTAL_EVENT: RegistryObject<NetherPortalEvent> = RANDOM_EVENT_REGISTRY.register(NetherPortalEvent.name, ::NetherPortalEvent)
 
@@ -43,13 +47,19 @@ object RandomEventRegisters {
         RANDOM_EVENTS.putIfAbsent(event.category, mutableMapOf<RandomEventsRarity, MutableList<RandomEvent>>())
         RANDOM_EVENTS[event.category]!!.putIfAbsent(event.rarity, mutableListOf<RandomEvent>())
         RANDOM_EVENTS[event.category]!![event.rarity]!!.add(event)
+
+        EVENTS_BY_TAGS[event.eventTag] = event
     }
 
     fun registerEvents() {
         RANDOM_EVENTS = mutableMapOf<RandomEventsCategories, MutableMap<RandomEventsRarity, kotlin.collections.MutableList<RandomEvent>>>()
         registerEvent(ZombieSkeletonFightEvent())
         registerEvent(SkeletonFightEvent())
-        registerEvent(NetherPortalEvent())
+        registerEvent(VillagerTrapEvent())
+        registerEvent(ZombieFightEvent())
+        registerEvent(PillagerAmbushVillagerEvent())
+        registerEvent(AbandonedWolfEvent())
+        //registerEvent(NetherPortalEvent())
         registerEvent(NetherInvasionEvent())
     }
 

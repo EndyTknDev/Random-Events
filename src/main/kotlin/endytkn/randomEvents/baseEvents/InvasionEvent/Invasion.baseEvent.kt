@@ -19,8 +19,6 @@ enum class InvasionWaveStatus {
 }
 
 open class InvasionBaseEvent: RandomEvent() {
-    private var commandDispatcher: CommandDispatcher<CommandSourceStack>? = null;
-    private var commandSource: CommandSourceStack? = null;
     var invasionTimer = 20 * 60 * 5
     var invasionTimerPassed = invasionTimer
     var actualWave = 0
@@ -44,24 +42,22 @@ open class InvasionBaseEvent: RandomEvent() {
     }
 
     override fun onPrepare() {
-        commandSource = level!!.server!!.createCommandSourceStack()
-        commandDispatcher = level!!.server!!.commands.dispatcher
         onWaveStatusChangeObserver += ::onChangeWaveStatus
         super.onPrepare()
     }
 
     override fun onReady() {
         setWaveInvasionStatus(InvasionWaveStatus.STARTED_WAVE)
-        MinecraftEventsObservers.onPlayerTickEventObserver += ::tickTimer
-        MinecraftEventsObservers.onPlayerTickEventObserver += ::tickParticle
+        MinecraftEventsObservers.onTickEventObserver += ::tickTimer
+        MinecraftEventsObservers.onTickEventObserver += ::tickParticle
         super.onReady()
     }
 
     override fun onFinishing() {
         MinecraftEventsObservers.onLivingDeathEventObserver -= ::tickMobDeath
-        MinecraftEventsObservers.onPlayerTickEventObserver -= ::tickTimer
-        MinecraftEventsObservers.onPlayerTickEventObserver -= ::tickParticle
-        MinecraftEventsObservers.onPlayerTickEventObserver -= ::tickWaveInterval
+        MinecraftEventsObservers.onTickEventObserver -= ::tickTimer
+        MinecraftEventsObservers.onTickEventObserver -= ::tickParticle
+        MinecraftEventsObservers.onTickEventObserver -= ::tickWaveInterval
         super.onFinishing()
     }
 
@@ -84,7 +80,7 @@ open class InvasionBaseEvent: RandomEvent() {
     }
 
     open fun onStartWave() {
-        MinecraftEventsObservers.onPlayerTickEventObserver -= ::tickWaveInterval
+        MinecraftEventsObservers.onTickEventObserver -= ::tickWaveInterval
         MinecraftEventsObservers.onLivingDeathEventObserver += ::tickMobDeath
         spawnWave(wavesGroupies[actualWave])
     }
@@ -102,7 +98,7 @@ open class InvasionBaseEvent: RandomEvent() {
     open fun onWaveNotStarted() {}
 
     open fun onPrepareWave() {
-        MinecraftEventsObservers.onPlayerTickEventObserver += ::tickWaveInterval
+        MinecraftEventsObservers.onTickEventObserver += ::tickWaveInterval
     }
 
     open fun spawnWave(waveGroup: InvasionWaveGroup) {
@@ -114,7 +110,8 @@ open class InvasionBaseEvent: RandomEvent() {
             if (mobPos == null) mobPos = groupPos
             mob.addEffect(MobEffectInstance(MobEffects.GLOWING, 1, this.invasionTimer))
             mob.setPos(Vec3(mobPos.x.toDouble(), mobPos.y.toDouble(), mobPos.z.toDouble()))
-            runSpawnParticle(mobPos)
+            mob.addEffect(MobEffectInstance(MobEffects.GLOWING, this.timeLimit))
+            spawnAnimation(mobPos)
             level!!.addFreshEntity(mob)
         }
 
@@ -130,14 +127,14 @@ open class InvasionBaseEvent: RandomEvent() {
         setWaveInvasionStatus(InvasionWaveStatus.FINISHED_WAVE)
     }
 
-    open fun tickWaveInterval(event: TickEvent.PlayerTickEvent) {
+    open fun tickWaveInterval(event: TickEvent) {
         if (waveIntervalPassed <= 0) {
             setWaveInvasionStatus(InvasionWaveStatus.STARTED_WAVE)
         }
         waveIntervalPassed--
     }
 
-    open fun tickTimer(event: TickEvent.PlayerTickEvent) {
+    open fun tickTimer(event: TickEvent) {
         if (invasionTimerPassed <= 0) {
             this.setEventStatus(RandomEventStatus.FINISHING_CANCELED)
         }
@@ -157,12 +154,12 @@ open class InvasionBaseEvent: RandomEvent() {
         }
     }
 
-    open fun tickParticle(event: TickEvent.PlayerTickEvent) {
+    open fun tickParticle(event: TickEvent) {
         //val particleCommand = "particle minecraft:portal ${targetBlock!!.x} ${targetBlock!!.y} ${targetBlock!!.z} 0 2 0 1 40 force"
         //commandDispatcher!!.execute(particleCommand, commandSource)
     }
 
-    open fun runSpawnParticle(blockPos: BlockPos) {
+    open fun spawnAnimation(blockPos: BlockPos) {
         //val particleCommand = "particle minecraft:portal ${blockPos.x} ${blockPos.y} ${blockPos.z} 0 0 0 1 200 force"
         //commandDispatcher!!.execute(particleCommand, commandSource)
     }

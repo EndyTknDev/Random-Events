@@ -21,6 +21,7 @@ class NetherPortalEvent : SpawnStructureBaseEvent("minecraft", "ruined_portal/po
     init {
         category = RandomEventsCategories.STRUCTURE
         rarity = RandomEventsRarity.RARE
+        eventTag = "netherPortal"
     }
 
     override fun create(): RandomEvent {

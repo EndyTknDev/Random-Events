@@ -8,6 +8,7 @@ import endytkn.randomEvents.randomEvents.RandomEvent
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.Mob
+import net.minecraft.world.entity.ai.goal.target.TargetGoal
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import java.util.UUID
@@ -20,6 +21,7 @@ class ZombieSkeletonFightEvent: GroupFightBaseEvent(true) {
     init {
         category = RandomEventsCategories.GROUP_FIGHT
         rarity = RandomEventsRarity.COMMON
+        eventTag = "zombieSkeletonFight"
     }
 
     override fun create(): RandomEvent {
@@ -28,7 +30,7 @@ class ZombieSkeletonFightEvent: GroupFightBaseEvent(true) {
 
     override fun onPrepare() {
         val skeletonMobs = mutableMapOf<UUID, Mob>()
-        repeat(8) {
+        repeat(5) {
             var mobType: EntityType<out Mob> = EntityType.SKELETON
             var mob = mobType.create(level!!)
             mob?.let {
@@ -41,14 +43,11 @@ class ZombieSkeletonFightEvent: GroupFightBaseEvent(true) {
         val skeletonGroup = GroupFight(this, "skeleton", skeletonMobs, "zombie")
 
         val zombieMobs = mutableMapOf<UUID, Mob>()
-        repeat (8) {
+        repeat (3) {
             var mobType: EntityType<out Mob> = EntityType.ZOMBIE
             var mob = mobType.create(level!!)
 
             mob?.let {
-                val stoneSword = ItemStack(Items.STONE_SWORD)
-                it.setCanPickUpLoot(false)
-                it.setItemInHand(InteractionHand.MAIN_HAND, stoneSword)
                 zombieMobs.put(it.uuid, it)
             }
         }

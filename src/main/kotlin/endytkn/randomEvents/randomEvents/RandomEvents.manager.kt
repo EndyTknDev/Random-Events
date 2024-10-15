@@ -1,5 +1,6 @@
 package endytkn.randomEvents.randomEvents
 
+import endytkn.randomEvents.utils.GameInstances
 import endytkn.randomEvents.utils.Observer
 import endytkn.randomEvents.validChunkManager.ValidChunkManager
 import net.minecraft.client.Minecraft
@@ -109,7 +110,7 @@ object RandomEventsManager {
             val chunkPosition = findRandomChunkPosition(chunk)
             if (chunkPosition == null) continue
             val newEvent = RandomEventChooser.getEvent(player.level(), chunkPosition, isUnderground, biomeKey, false)
-            newEvent.initEvent(player.level(), chunkPosition, group)
+            newEvent.initEvent(player.level() as ServerLevel, chunkPosition, group)
             player.sendSystemMessage(Component.literal("novo evento apareceu ${chunkPosition.x}, ${chunkPosition.y}, ${chunkPosition.z} ${newEvent.title} "))
             addEvent(newEvent)
             newEvent.start()

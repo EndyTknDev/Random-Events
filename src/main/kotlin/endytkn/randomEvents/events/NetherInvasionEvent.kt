@@ -6,18 +6,16 @@ import endytkn.randomEvents.randomEvents.RandomEvent
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.Mob
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal
-import net.minecraft.world.entity.animal.IronGolem
-import net.minecraft.world.entity.monster.WitherSkeleton
-import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import java.util.UUID
 
 class NetherInvasionEvent : InvasionBaseEvent() {
+
+    init {
+        this.eventTag = "netherInvasion"
+    }
+
     override fun create(): RandomEvent {
         return NetherInvasionEvent()
     }
@@ -41,6 +39,7 @@ class NetherInvasionEvent : InvasionBaseEvent() {
                 var mob = EntityType.WITHER_SKELETON.create(level!!)
                 mob.let {
                     val stoneSword = ItemStack(Items.STONE_SWORD)
+
                     it!!.setCanPickUpLoot(false)
                     it.setItemInHand(InteractionHand.MAIN_HAND, stoneSword)
                     mobs.put(it.uuid, it)

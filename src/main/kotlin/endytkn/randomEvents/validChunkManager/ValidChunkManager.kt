@@ -42,9 +42,12 @@ object ValidChunkManager {
         putIfNotExists(posX, posZ)
         var counter = chunkMap[posX]?.get(posZ)?.plus(1) ?: 1
         chunkMap[posX]?.set(posZ, counter)
-        entity?.sendSystemMessage(Component.literal("chunk (${chunk.pos.x}, ${chunk.pos.z}) = $counter "))
+        /*
+        //entity?.sendSystemMessage(Component.literal("chunk (${chunk.pos.x}, ${chunk.pos.z}) = $counter "))
         if (hasBuildingAround(posX, posZ))
             entity?.sendSystemMessage(Component.literal(("Has building around!!")))
+
+         */
         chunkData.setDirty()
     }
 

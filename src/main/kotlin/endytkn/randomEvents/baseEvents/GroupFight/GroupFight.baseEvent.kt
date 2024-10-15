@@ -7,6 +7,9 @@ import endytkn.randomEvents.randomEvents.RandomEventStatus
 import endytkn.randomEvents.utils.BlockPosUtils
 import endytkn.randomEvents.utils.Observer
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.Tag
+import net.minecraft.world.effect.MobEffectInstance
+import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.player.Player
@@ -20,13 +23,13 @@ open class GroupFightBaseEvent(val removeDrops: Boolean) : RandomEvent() {
     }
 
     protected val mobGroupies: MutableMap<String, GroupFight> = mutableMapOf()
-    protected val playersInEvents = mutableListOf<Player>()
 
     override fun onPrepare() {
+        this.distanceThreshold = 100
         spawnMobs()
-        startFighting()
-        super.onPrepare()
+        MinecraftEventsObservers.onLivingDeathEventObserver -= ::tickDeath
         MinecraftEventsObservers.onLivingDeathEventObserver += ::tickDeath
+        super.onPrepare()
     }
 
     override fun onReady() {
@@ -66,38 +69,34 @@ open class GroupFightBaseEvent(val removeDrops: Boolean) : RandomEvent() {
                 if (mobPos == null) mobPos = groupPos
                 mob.setPos(Vec3(mobPos.x.toDouble(), mobPos.y.toDouble(), mobPos.z.toDouble()))
                 mob.setPersistenceRequired()
+                mob.addEffect(MobEffectInstance(MobEffects.GLOWING, this.timeLimit))
                 mob.isNoAi = true
-                val nbt: CompoundTag = mob.serializeNBT() // Obtém os dados NBT do zombie
-                nbt.putString("REGroupFight", this.id.toString())
+                val nbt: CompoundTag = mob.persistentData
+                nbt.putString(this.eventTag, this.id.toString())
                 nbt.putString("REGroupFightName", group.groupName)
-                mob.deserializeNBT(nbt)
+                if (group.groupHates != null) {
+                    nbt.putString("REGroupFightHates", group.groupHates)
+                    mob.goalSelector.addGoal(1, GroupFightGoal(mob, Mob::class.java))
+                }
+                mob.addAdditionalSaveData(nbt)
                 level!!.addFreshEntity(mob)
-            }
-        }
-    }
-
-    private fun startFighting() {
-        for (group in mobGroupies.values) {
-            for (mob in group.entities.values) {
-                fightNextTarget(group, mob)
             }
         }
     }
 
     private fun tickDeath(event: LivingDeathEvent) {
         val entity = event.entity
-        val nbt: CompoundTag = entity.serializeNBT()
-
+        val nbt: CompoundTag = entity.persistentData
         if (
             status != RandomEventStatus.READY ||
-            !nbt.contains("REGroupFight") ||
             !nbt.contains("REGroupFightName") ||
-            (nbt.get("REGroupFight").toString()) == this.id.toString()
+            !this.isEntityOfEvent(entity)
         ) return;
 
-        val groupName = nbt.get("REGroupFightName").toString()
-        val group = mobGroupies[groupName]
-        group!!.killEntity(entity.uuid, entity.killCredit is Player)
+        val groupName = nbt.getString("REGroupFightName")
+        val group = this.mobGroupies[groupName]
+
+        group!!.killEntity(entity.uuid, event.source.entity is Player)
 
         if (verifyGroupiesLeft())
             onGroupiesKilled()
@@ -110,23 +109,4 @@ open class GroupFightBaseEvent(val removeDrops: Boolean) : RandomEvent() {
         return true
     }
 
-    private fun fightNextTarget(group: GroupFight, mob: Mob) {
-        val hatedGroup = mobGroupies[group.groupHates]
-        if (hatedGroup == null) return
-        var mostCloseMob: Mob? = null
-        var mostCloseDistance = 10000000
-        for (targetMob in hatedGroup.entities.values) {
-            val distance = mob.distanceTo(targetMob)
-            if (distance < mostCloseDistance) {
-                mostCloseMob = targetMob
-            }
-        }
-        if (mostCloseMob == null) return
-        initiateFight(mob, mostCloseMob)
-    }
-
-    private fun initiateFight(mob1: Mob, mob2: Mob) {
-        mob1.target = mob2
-        mob2.target = mob1
-    }
 }

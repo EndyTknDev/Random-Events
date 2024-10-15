@@ -16,13 +16,17 @@ object BlockPosUtils {
 
     fun findSurfaceBlock(level: Level, blockPos: BlockPos, maxY: Int): BlockPos? {
         val x = blockPos.x
-        val y = blockPos.y
+        val y = blockPos.y - 5
         val z = blockPos.z
 
         for (itY in y..maxY) {
             val actualPos = BlockPos(x, itY, z)
             val blockState: BlockState = level.getBlockState(actualPos)
-            if (blockState.isAir) {
+
+            val belowPos = BlockPos(x, itY - 1, z)
+            val belowBlockState: BlockState = level.getBlockState(belowPos)
+
+            if (blockState.isAir && !(belowBlockState.isAir)) {
                 return actualPos
             }
         }
@@ -33,7 +37,11 @@ object BlockPosUtils {
         for (y in yRange) {
             val pos = BlockPos(x, y, z)
             val blockState: BlockState = level.getBlockState(pos)
-            if (blockState.isAir) {
+
+            val belowPos = BlockPos(x, y - 1, z)
+            val belowBlockState: BlockState = level.getBlockState(belowPos)
+
+            if (blockState.isAir && !(belowBlockState.isAir)) {
                 return BlockPos(x, y, z)
             }
         }

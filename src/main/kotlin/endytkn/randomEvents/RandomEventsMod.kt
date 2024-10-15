@@ -50,13 +50,6 @@ object RandomEventsMod {
         LOGGER.log(Level.INFO, "Server starting...")
     }
 
-    private fun onServerStartup(event: ServerStartingEvent) {
-        GameInstances.minecraftServer = event.server
-        GameInstances.overworldLevel = event.server.getLevel(net.minecraft.world.level.Level.OVERWORLD)
-        GameInstances.netherLevel = event.server.getLevel(net.minecraft.world.level.Level.NETHER)
-        GameInstances.endLevel = event.server.getLevel(net.minecraft.world.level.Level.END)
-    }
-
     private fun onLoadRegister(event: FMLLoadCompleteEvent ) {
         LOGGER.log(Level.DEBUG, "REGISTERING RANDOM EVENTS")
         RandomEventRegisters.registerEvents()

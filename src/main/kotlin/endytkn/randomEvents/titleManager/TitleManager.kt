@@ -11,35 +11,29 @@ import net.minecraftforge.fml.common.Mod
 @Mod.EventBusSubscriber
 object TitleManager {
     private var displayMessage: String? = null
-    private var initialDisplayTime: Int = 20 * 8 // 15 seconds (20 ticks = 1 second)
+    private var initialDisplayTime: Int = 20 * 8
     private var displayTime: Int = 0
-    private var alpha: Float = 1.0f // Start with full opacity (1.0)
+    private var alpha: Float = 1.0f
 
-    // Create a color that starts white, transitions to gray, and stays at 50% opacity until time runs out
     fun createColorWithAlphaAndTransition(alpha: Float): Int {
-        // Phase 1: White -> Gray transition
         val red: Int
         val green: Int
         val blue: Int
-        var currentAlpha = alpha // Full opacity in the beginning
+        var currentAlpha = alpha
 
         when {
             alpha > 0.1f -> {
-                // First half of the transition: color fades from white (255) to gray (128)
                 red = (255 - (127 * (1 - alpha) * 2)).toInt()
                 green = red
                 blue = red
             }
             else -> {
-                // Second half: color remains gray (128), hold at 50% opacity
                 red = 128
                 green = 128
                 blue = 128
                 currentAlpha = 0.1f // Hold at 50% opacity
             }
         }
-
-        // Combine the alpha value with the RGB color
         val alphaValue = (currentAlpha * 255).toInt()
         return (alphaValue shl 24) or (red shl 16) or (green shl 8) or blue
     }
@@ -50,7 +44,6 @@ object TitleManager {
         alpha = 1.0f // Reset opacity to full visibility
     }
 
-    // Render the message on the screen with the fade-out and color transition effect
     @SubscribeEvent
     fun onTick(event: TickEvent.ServerTickEvent) {
         val minecraft = Minecraft.getInstance()
@@ -82,15 +75,15 @@ object TitleManager {
             event.guiGraphics.pose().scale(1.2f, 1.2f, 1.2f) // Scale the font by 2x
 
             // Calculate the X and Y positions without scaling, then scale
-            val unscaledX = (screenWidth / 2  + font.width(displayMessage!!) ) // Unscaled X position
-            val unscaledY = (screenHeight*0.2) // Unscaled Y position
+            val unscaledX = (screenWidth / 2  - font.width(displayMessage!!) ) // Unscaled X position
+            val unscaledY = (screenHeight * 0.2) // Unscaled Y position
 
             event.guiGraphics.drawString(
-                font, 
+                font,
                 displayMessage!!,
                 (unscaledX / 2).toFloat(),  // Divide by 2 after calculating unscaled positions
                 (unscaledY / 2).toFloat(),  // Divide by 2 for scaling purposes
-                color, 
+                color,
                 true
             )
 

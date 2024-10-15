@@ -2,10 +2,15 @@ package endytkn.randomEvents.randomEvents
 
 import endytkn.randomEvents.minecraftEventsObservers.MinecraftEventsObservers
 import endytkn.randomEvents.titleManager.TitleManager
+import endytkn.randomEvents.utils.GameInstances
 import endytkn.randomEvents.utils.Observer
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
+import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import net.minecraftforge.event.TickEvent
@@ -16,7 +21,7 @@ enum class RandomEventStatus {
 }
 
 open class RandomEvent() {
-    var level: Level? = null
+    var level: ServerLevel? = null
     var targetBlock: BlockPos? = null
     var playersGroup: List<ServerPlayer>? = null
     val id: UUID = UUID.randomUUID()
@@ -28,16 +33,13 @@ open class RandomEvent() {
     var title: String = "Random Event"
     var category: RandomEventsCategories = RandomEventsCategories.SPECIAL
     var rarity: RandomEventsRarity = RandomEventsRarity.COMMON
-
-    companion object {
-        val name: String = "random_event"
-    }
+    var eventTag = "randomEvent"
 
     open fun create(): RandomEvent {
         return RandomEvent()
     }
 
-    open fun initEvent(level: Level, targetBlock: BlockPos, playersGroup: List<ServerPlayer>) {
+    open fun initEvent(level: ServerLevel, targetBlock: BlockPos, playersGroup: List<ServerPlayer>) {
         this.level = level
         this.targetBlock = targetBlock
         this.playersGroup = playersGroup
@@ -49,23 +51,26 @@ open class RandomEvent() {
 
         onChangeStatusObserver += ::onChangeStatus
         setEventStatus(RandomEventStatus.PREPARING)
-        MinecraftEventsObservers.onPlayerTickEventObserver += ::onPlayerTick
+        MinecraftEventsObservers.onPlayerTickEventObserver.plusAssign(::tickEvent)
     }
 
-    open fun onPlayerTick(event: TickEvent.PlayerTickEvent) {
-        if (Minecraft.getInstance().isPaused) return
-        onTimeLimit()
-        if (isNearby(event.player) || event.side.isServer && status == RandomEventStatus.WAITING_PLAYER) {
-            MinecraftEventsObservers.onPlayerTickEventObserver -= ::onPlayerTick
-            onPlayerEnter()
+    open fun tickEvent(event: TickEvent.PlayerTickEvent) {
+        try {
+            if (Minecraft.getInstance().isPaused || event.player.isSpectator) return
+            onTimeLimit()
+            if (isNearby(event.player) && event.side.isServer && status == RandomEventStatus.WAITING_PLAYER) {
+                onPlayerEnter()
+            }
+        } catch (e: Error) {
+            println(e)
+            throw e;
         }
     }
 
     open fun onTimeLimit() {
         timePassed++;
         if (timePassed >= timeLimit) {
-            MinecraftEventsObservers.onPlayerTickEventObserver -= ::onPlayerTick
-            cancel()
+            cancelEvent()
         }
     }
 
@@ -75,27 +80,16 @@ open class RandomEvent() {
     }
 
     open fun onChangeStatus(newStatus: RandomEventStatus) {
-        println(newStatus)
-        if (newStatus == RandomEventStatus.PREPARING) {
-            this.onPrepare()
-            return
+        level!!.server!!.sendSystemMessage(Component.literal("Event $eventTag status: $newStatus"))
+        when(newStatus) {
+            RandomEventStatus.PREPARING -> { this.onPrepare() }
+            RandomEventStatus.FINISHING_SUCCESS -> { this.onFinishingSuccess() }
+            RandomEventStatus.FINISHING_CANCELED -> { this.onFinishingCanceled(); }
+            RandomEventStatus.FINISHING -> { this.onFinishing(); }
+            RandomEventStatus.READY -> { this.onReady() }
+            else -> {}
         }
-        else if (newStatus == RandomEventStatus.FINISHING_SUCCESS) {
-            this.onFinishingSuccess()
-            return
-        }
-        else if (newStatus == RandomEventStatus.FINISHING_CANCELED) {
-            this.onFinishingCanceled()
-            return;
-        }
-        else if (newStatus == RandomEventStatus.FINISHING) {
-            this.onFinishing()
-            return;
-        }
-        else if (newStatus == RandomEventStatus.READY) {
-            this.onReady()
-            return
-        }
+
     }
 
     open fun setEventStatus(newStatus: RandomEventStatus) {
@@ -120,18 +114,23 @@ open class RandomEvent() {
     }
 
     open fun onPlayerEnter() {
+        MinecraftEventsObservers.onPlayerTickEventObserver.minusAssign(::tickEvent)
         setEventStatus(RandomEventStatus.READY)
     }
 
-    open fun onReady() {
-        TitleManager.showTitle("Something is happening nearby")
-    }
+    open fun onReady() {}
 
     open fun resolve() {
         setEventStatus(RandomEventStatus.FINISHING_SUCCESS)
     }
 
-    open fun cancel() {
+    open fun cancelEvent() {
+        MinecraftEventsObservers.onPlayerTickEventObserver.minusAssign(::tickEvent)
         setEventStatus(RandomEventStatus.FINISHING_CANCELED)
+    }
+
+    open fun isEntityOfEvent(entity: Entity): Boolean {
+        val nbt = entity.persistentData
+        return nbt.contains(this.eventTag) && nbt.getString(this.eventTag) == this.id.toString()
     }
 }
