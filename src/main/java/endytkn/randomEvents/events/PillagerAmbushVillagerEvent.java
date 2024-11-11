@@ -24,18 +24,16 @@ import java.util.function.Consumer;
 
 public class PillagerAmbushVillagerEvent extends RandomEvent {
     private Villager villager;
-
+    private Player player;
     public PillagerAmbushVillagerEvent() {
         this.eventTag = "pillagerAmbushVillager";
     }
-
+    private final Consumer<LivingDeathEvent> tickDeathConsumer = this::tickDeathEvent;
 
     @Override
     public RandomEvent create() {
         return new PillagerAmbushVillagerEvent();
     }
-
-    private final Consumer<LivingDeathEvent> tickDeathConsumer = this::tickDeathEvent;
 
     @Override
     public void onPrepare() {
@@ -49,9 +47,13 @@ public class PillagerAmbushVillagerEvent extends RandomEvent {
 
         if (event.getEntity() instanceof Villager) {
             this.onFinishingCanceled();
-        } else if (event.getEntity() instanceof Pillager) {
+            return;
+        }
+
+        if (event.getEntity() instanceof Pillager) {
             if (event.getSource().getEntity() instanceof Player) {
-                this.onPlayerKillPillager((Player) event.getSource().getEntity());
+                this.player = (Player) event.getSource().getEntity();
+                this.resolve();
             } else {
                 this.onFinishingCanceled();
             }
@@ -66,6 +68,7 @@ public class PillagerAmbushVillagerEvent extends RandomEvent {
 
     @Override
     public void onFinishingSuccess() {
+        this.rewardPlayer();
         super.onFinishingSuccess();
     }
 
@@ -75,13 +78,12 @@ public class PillagerAmbushVillagerEvent extends RandomEvent {
         super.onFinishing();
     }
 
-    private void onPlayerKillPillager(Player player) {
-        player.giveExperiencePoints(100);
-        level.playSound(null, player.blockPosition(), SoundEvents.VILLAGER_CELEBRATE, SoundSource.NEUTRAL, 1.0f, 1.0f);
-        villager.lookAt(player, 1.0f, 1.0f);
+    private void rewardPlayer() {
+        this.player.giveExperiencePoints(100);
+        villager.lookAt(this.player, 1.0f, 1.0f);
         int emeralds = 3 + (int) (Math.random() * 3); // Random entre 3 e 5
         ItemStack emeraldStack = new ItemStack(Items.EMERALD, emeralds);
-        player.addItem(emeraldStack);
+        this.player.addItem(emeraldStack);
     }
 
     private void spawnVillager() {

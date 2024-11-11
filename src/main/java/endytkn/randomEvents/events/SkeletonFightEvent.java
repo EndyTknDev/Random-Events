@@ -41,6 +41,7 @@ public class SkeletonFightEvent extends GroupFightBaseEvent {
     @Override
     public void onPrepare() {
         LightningBolt lightningBolt = EntityType.LIGHTNING_BOLT.create(level);
+        lightningBolt.setCause(null);
         lightningBolt.setPos(targetBlock.getX(), targetBlock.getY(), targetBlock.getZ());
         lightningBolt.setSecondsOnFire(0);
         level.addFreshEntity(lightningBolt);
@@ -62,7 +63,6 @@ public class SkeletonFightEvent extends GroupFightBaseEvent {
             }
         }
 
-        // Criando os líderes
         for (int i = 0; i < leaderCount; i++) {
             EntityType<? extends Mob> mobType = EntityType.SKELETON;
             Mob mob = mobType.create(level);

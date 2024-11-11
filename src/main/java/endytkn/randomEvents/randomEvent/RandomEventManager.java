@@ -18,10 +18,6 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.MobSpawnEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -59,6 +55,7 @@ public class RandomEventManager {
     public static void onServerStopRemoveMobs(ServerStoppingEvent event) {
         for (ServerLevel level : event.getServer().getAllLevels()) {
             level.getEntities().getAll().forEach(entity -> {
+                if (entity == null) return;
                 CompoundTag nbt = entity.getPersistentData();
                 if (nbt.contains(RandomEventsMod.ID)) {
                     entity.setRemoved(Entity.RemovalReason.DISCARDED);

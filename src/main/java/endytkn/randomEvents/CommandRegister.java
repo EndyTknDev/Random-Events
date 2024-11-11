@@ -20,5 +20,4 @@ public class CommandRegister {
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         RandomEventCommands.register(event.getDispatcher());
     }
-
 }

@@ -58,6 +58,46 @@ public class AbandonedWolfEvent extends RandomEvent {
         return new AbandonedWolfEvent();
     }
 
+    @Override
+    public void onPrepare() {
+        spawnWolf();
+        MinecraftEventsObservers.serverTickObserver.add(this.tickWolfConsumer);
+        MinecraftEventsObservers.playerInteractEntityObserver.add(this.wolfInteractConsumer);
+        MinecraftEventsObservers.livingDeathObserver.add(this.wolfDeathTickConsumer);
+        super.onPrepare();
+    }
+
+    @Override
+    public void onFinishing() {
+        MinecraftEventsObservers.serverTickObserver.remove(this.tickWolfConsumer);
+        MinecraftEventsObservers.playerInteractEntityObserver.remove(this.wolfInteractConsumer);
+        MinecraftEventsObservers.livingDeathObserver.remove(this.wolfDeathTickConsumer);
+        super.onFinishing();
+    }
+
+    @Override
+    public void onFinishingSuccess() {
+        if (wolf != null && player != null) {
+            AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), "Wolf Boost", 0.3, AttributeModifier.Operation.ADDITION);
+            wolf.setOwnerUUID(player.getUUID());
+            Objects.requireNonNull(wolf.getAttribute(Attributes.MOVEMENT_SPEED)).addPermanentModifier(modifier);
+            Objects.requireNonNull(wolf.getAttribute(Attributes.MAX_HEALTH)).addPermanentModifier(modifier);
+            Objects.requireNonNull(wolf.getAttribute(Attributes.ATTACK_DAMAGE)).addPermanentModifier(modifier);
+            this.removeEntityFromEvent(wolf);
+            wolf.heal(4.0f);
+            wolf.setCollarColor(DyeColor.RED);
+            wolf.setCustomName(null);
+
+            player.giveExperiencePoints(100);
+            level.playSound(wolf, wolf.blockPosition(), SoundEvents.WOLF_AMBIENT, SoundSource.NEUTRAL, 1.0f, 1f);Random random = new Random();
+
+            AbandonedWolfLovePackage particlePacket = new AbandonedWolfLovePackage(this.wolf.getId());
+            PacketHandler.sendPacketToNearbyClients(particlePacket, this.level, this.wolf.position(), 50);
+            dropRewards();
+        }
+        super.onFinishingSuccess();
+    }
+
     private String generateRandomName() {
         Random random = new Random();
         int randomIndex = random.nextInt(possiblesWolfNames.size());
@@ -99,45 +139,6 @@ public class AbandonedWolfEvent extends RandomEvent {
         this.cryIntervalPassed--;
     }
 
-    @Override
-    public void onPrepare() {
-        spawnWolf();
-        MinecraftEventsObservers.serverTickObserver.add(this.tickWolfConsumer);
-        MinecraftEventsObservers.playerInteractEntityObserver.add(this.wolfInteractConsumer);
-        MinecraftEventsObservers.livingDeathObserver.add(this.wolfDeathTickConsumer);
-        super.onPrepare();
-    }
-
-    @Override
-    public void onFinishing() {
-        MinecraftEventsObservers.serverTickObserver.remove(this.tickWolfConsumer);
-        MinecraftEventsObservers.playerInteractEntityObserver.remove(this.wolfInteractConsumer);
-        MinecraftEventsObservers.livingDeathObserver.remove(this.wolfDeathTickConsumer);
-        super.onFinishing();
-    }
-
-    @Override
-    public void onFinishingSuccess() {
-        if (wolf != null && player != null) {
-            AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), "Wolf Boost", 0.3, AttributeModifier.Operation.ADDITION);
-            wolf.setOwnerUUID(player.getUUID());
-            Objects.requireNonNull(wolf.getAttribute(Attributes.MOVEMENT_SPEED)).addPermanentModifier(modifier);
-            Objects.requireNonNull(wolf.getAttribute(Attributes.MAX_HEALTH)).addPermanentModifier(modifier);
-            Objects.requireNonNull(wolf.getAttribute(Attributes.ATTACK_DAMAGE)).addPermanentModifier(modifier);
-            this.removeEntityFromEvent(wolf);
-            wolf.heal(4.0f);
-            wolf.setCollarColor(DyeColor.RED);
-            wolf.setCustomName(null);
-
-            player.giveExperiencePoints(100);
-            level.playSound(wolf, wolf.blockPosition(), SoundEvents.WOLF_AMBIENT, SoundSource.NEUTRAL, 1.0f, 1f);Random random = new Random();
-
-            AbandonedWolfLovePackage particlePacket = new AbandonedWolfLovePackage(this.wolf.getId());
-            PacketHandler.sendPacketToNearbyClients(particlePacket, this.level, this.wolf.position(), 50);
-            dropRewards();
-        }
-        super.onFinishingSuccess();
-    }
 
     private ItemEntity createDropRewardEntity(ItemStack itemStack) {
         return new ItemEntity(

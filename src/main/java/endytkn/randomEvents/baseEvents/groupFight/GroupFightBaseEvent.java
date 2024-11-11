@@ -1,6 +1,7 @@
 package endytkn.randomEvents.baseEvents.groupFight;
 
 import endytkn.randomEvents.eventObservers.MinecraftEventsObservers;
+import endytkn.randomEvents.goals.GroupFightGoal;
 import endytkn.randomEvents.randomEvent.RandomEvent;
 import endytkn.randomEvents.utils.BlockPosUtils;
 import net.minecraft.core.BlockPos;

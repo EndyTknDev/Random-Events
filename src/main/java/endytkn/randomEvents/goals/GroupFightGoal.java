@@ -1,4 +1,4 @@
-package endytkn.randomEvents.baseEvents.groupFight;
+package endytkn.randomEvents.goals;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;

@@ -18,6 +18,7 @@ public class ChunkManager {
     private static final int buildingThreshold = 90;
     private static final String CHUNK_MAP_NAME = "chunk_map_data";
     public static ServerLevel serverLevel;
+
     static {
         serverLevel = getServerLevel(Level.OVERWORLD);
         if (serverLevel != null) {

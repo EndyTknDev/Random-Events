@@ -47,5 +47,7 @@ public class RandomEventRegister {
         registerEvent(new NetherInvasionEvent());
         registerEvent(new PillagerSkeletonFightEvent());
         registerEvent(new PillagerZombieFightEvent());
+        registerEvent(new LostVillagerEvent());
+        registerEvent(new DrownedThunderFightEvent());
     }
 }
