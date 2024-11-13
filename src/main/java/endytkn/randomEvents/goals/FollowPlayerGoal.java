@@ -1,13 +1,12 @@
 package endytkn.randomEvents.goals;
 
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 
 public class FollowPlayerGoal extends Goal {
     private final Mob mob;
-    private Player player;
+    private final Player player;
     private final Double speedModifier;
     private final float maxDistance;
 

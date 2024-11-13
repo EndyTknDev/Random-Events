@@ -1,7 +1,7 @@
 package endytkn.randomEvents.randomEvent;
 
 import endytkn.randomEvents.RandomEventsMod;
-import endytkn.randomEvents.chunkManager.ChunkManager;
+import endytkn.randomEvents.chunkManager.ChunkManagerCore;
 import endytkn.randomEvents.utils.Observer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -32,7 +32,7 @@ import static java.lang.Math.*;
 @Mod.EventBusSubscriber
 public class RandomEventManager {
     enum RandomEventManagerStatus {
-        TICKING, TRY_EVENT, START_EVENT, FINISH_EVENT
+        TICKING, STARTED, FINISHED
     }
 
     private static final int eventInterval = 20 * 60 * 2;
@@ -42,10 +42,8 @@ public class RandomEventManager {
     private static final int playerThresholdXDistance = 200;
     private static final int playerThresholdYDistance = 20;
     private static final int maxTriesFindEventPosition = 10;
-    private static final int positionMaxDistance = 5;
     private static final int positionMinDistance = 4;
-    private static final Map<UUID, RandomEvent> events = new HashMap<>();
-    private static final Observer<RandomEvent> onEventFinishObserver = new Observer<>();
+    private static final int positionMaxDistance = 5;
 
     static {
         onChangeStatusObserver.add(RandomEventManager::onChangeEvent);
@@ -70,28 +68,14 @@ public class RandomEventManager {
         if (event.phase != TickEvent.Phase.START || minecraft.isPaused()) return;
         if (status == RandomEventManagerStatus.TICKING) {
             if (eventIntervalLeft <= 0) {
-                setStatus(RandomEventManagerStatus.TRY_EVENT);
+                triggerNewEvent();
             }
             eventIntervalLeft--;
         }
     }
 
     public static void triggerNewEvent() {
-        setStatus(RandomEventManagerStatus.TRY_EVENT);
-    }
-
-    public static Map<UUID, RandomEvent> getEvents() {
-        return events;
-    }
-
-    public static void addEvent(RandomEvent event) {
-        onEventFinishObserver.add(RandomEventManager::removeEvents);
-        events.put(event.id, event);
-    }
-
-    public static void removeEvents(RandomEvent event) {
-        onEventFinishObserver.remove(RandomEventManager::removeEvents);
-        events.remove(event.id);
+        setStatus(RandomEventManagerStatus.STARTED);
     }
 
     public static void setStatus(RandomEventManagerStatus newStatus) {
@@ -99,51 +83,60 @@ public class RandomEventManager {
         onChangeStatusObserver.notify(status);
     }
 
-    private static void cancelEvent() {
+    private static void onFinish() {
         eventIntervalLeft = eventInterval;
         setStatus(RandomEventManagerStatus.TICKING);
     }
 
     private static void onChangeEvent(RandomEventManagerStatus status) {
-        if (status == RandomEventManagerStatus.TRY_EVENT) {
-            tryEvent();
-        } else if (status == RandomEventManagerStatus.FINISH_EVENT) {
-            cancelEvent();
+        switch (status) {
+            case STARTED -> {
+                startEvent();
+            }
+            case FINISHED -> {
+                onFinish();
+            }
         }
     }
 
-    private static void tryEvent() {
+    private static void startEvent() {
         Map<Integer, List<ServerPlayer>> proximityGroups = groupPlayersByProximity();
         for (List<ServerPlayer> group : proximityGroups.values()) {
             ServerPlayer player = group.get(0);
             String biomeKey = getPlayerBiomeKey(player);
+            if (ChunkManagerCore.isLevelAvailable(player.level().dimension())) return;
             boolean isUnderground = isPlayerUnderground(player);
             if (isUnderground) return;
             ChunkAccess chunk = findEventChunk(player);
+
             if (chunk == null) continue;
+
             BlockPos chunkPosition = findRandomChunkPosition(chunk, player.level());
-            if (chunkPosition == null) continue;
+
             RandomEvent newEvent = RandomEventChooser.getEvent(player.level(), chunkPosition, isUnderground, biomeKey, false);
             newEvent.initEvent((ServerLevel) player.level(), chunkPosition, group);
-            player.sendSystemMessage(Component.literal("novo evento apareceu " + chunkPosition.getX() + ", " + chunkPosition.getY() + ", " + chunkPosition.getZ() + " " + newEvent.title));
-            addEvent(newEvent);
             newEvent.start();
+            player.sendSystemMessage(Component.literal("novo evento apareceu " + chunkPosition.getX() + ", " + chunkPosition.getY() + ", " + chunkPosition.getZ() + " " + newEvent.title));
         }
-        setStatus(RandomEventManagerStatus.FINISH_EVENT);
+        setStatus(RandomEventManagerStatus.FINISHED);
     }
+
 
     private static ChunkAccess findEventChunk(Player player) {
         Random random = new Random();
         ChunkAccess chunkPosition = player.level().getChunk(player.blockPosition());
-        double angle = random.nextDouble() * 2 * PI;
+        double angle = random.nextDouble() * 2 * Math.PI;  // Uso do PI diretamente da classe Math
+
         for (int i = 0; i <= maxTriesFindEventPosition; i++) {
             double randomRadius = random.nextDouble(positionMinDistance, positionMaxDistance);
-            int x = (int) (randomRadius * cos(angle)) + chunkPosition.getPos().x;
-            int z = (int) (randomRadius * sin(angle)) + chunkPosition.getPos().z;
-            if (!ChunkManager.hasBuildingAround(x, z)) {
-                return ChunkManager.getChunk(player.level(), x, z);
+            int x = (int) (randomRadius * Math.cos(angle)) + chunkPosition.getPos().x;
+            int z = (int) (randomRadius * Math.sin(angle)) + chunkPosition.getPos().z;
+
+            if (ChunkManagerCore.isChunkAvailable(player.level().dimension(), x, z)) {  // Lógica de verificação de construção
+                return player.level().getChunk(x, z);
             }
         }
+
         return null;
     }
 
