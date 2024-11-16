@@ -30,7 +30,7 @@ public class ChunkManagerCore {
     }
 
     public static boolean isChunkAvailable(ResourceKey<Level> levelKey, int x, int z) {
-        if (!chunkManagers.containsKey(levelKey)) return false;
+        if (!chunkManagers.containsKey(levelKey)) return true;
         ChunkManager chunkManager = chunkManagers.get(levelKey);
         return chunkManager.hasBuildingAround(x, z, 3);
     }

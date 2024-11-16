@@ -4,6 +4,8 @@ import endytkn.randomEvents.eventObservers.MinecraftEventsObservers;
 import endytkn.randomEvents.network.PacketHandler;
 import endytkn.randomEvents.network.packages.AbandonedWolfLovePackage;
 import endytkn.randomEvents.randomEvent.RandomEvent;
+import endytkn.randomEvents.randomEvent.RandomEventsCategory;
+import endytkn.randomEvents.randomEvent.RandomEventsRarity;
 import endytkn.randomEvents.utils.BlockPosUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -48,8 +50,10 @@ public class AbandonedWolfEvent extends RandomEvent {
     private boolean loreDropped = false;
 
     public AbandonedWolfEvent() {
-        this.eventTag = "abandonedWolf";
+        categories = List.of(RandomEventsCategory.WEATHER_THUNDER, RandomEventsCategory.DAY_NIGHT);
+        this.eventTag = "abandoned_wolf";
         this.wolfName = generateRandomName();
+        rarity = RandomEventsRarity.EPIC;
         this.favoriteFood = generateRandomFavoriteFood();
     }
 

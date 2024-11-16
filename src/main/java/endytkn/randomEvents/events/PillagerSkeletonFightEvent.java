@@ -3,6 +3,8 @@ package endytkn.randomEvents.events;
 import endytkn.randomEvents.baseEvents.groupFight.GroupFight;
 import endytkn.randomEvents.baseEvents.groupFight.GroupFightBaseEvent;
 import endytkn.randomEvents.randomEvent.RandomEvent;
+import endytkn.randomEvents.randomEvent.RandomEventsCategory;
+import endytkn.randomEvents.randomEvent.RandomEventsRarity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -11,17 +13,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class PillagerSkeletonFightEvent extends GroupFightBaseEvent {
-    public static final String NAME = "pillager_skeleton_fight";
-
     public PillagerSkeletonFightEvent() {
         super(true);
-        this.category = RandomEvent.RandomEventsCategories.GROUP_FIGHT;
-        this.rarity = RandomEvent.RandomEventsRarity.COMMON;
-        this.eventTag = "pillagerSkeletonFight";
+        categories = List.of(RandomEventsCategory.GROUP_FIGHT, RandomEventsCategory.DAY_NIGHT, RandomEventsCategory.WEATHER_CLEAR, RandomEventsCategory.WEATHER_RAIN, RandomEventsCategory.WEATHER_THUNDER);
+        this.rarity = RandomEventsRarity.COMMON;
+        this.eventTag = "pillager_skeleton_fight";
     }
 
     @Override

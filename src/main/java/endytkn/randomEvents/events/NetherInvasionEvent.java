@@ -12,9 +12,8 @@ import net.minecraft.world.item.Items;
 import java.util.*;
 
 public class NetherInvasionEvent extends InvasionBaseEvent {
-
     public NetherInvasionEvent() {
-        this.eventTag = "netherInvasion";
+        this.eventTag = "nether_invasion";
     }
 
     @Override

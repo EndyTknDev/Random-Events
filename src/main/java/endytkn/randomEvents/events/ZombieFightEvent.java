@@ -3,8 +3,9 @@ package endytkn.randomEvents.events;
 import endytkn.randomEvents.baseEvents.groupFight.GroupFight;
 import endytkn.randomEvents.baseEvents.groupFight.GroupFightBaseEvent;
 import endytkn.randomEvents.randomEvent.RandomEvent;
+import endytkn.randomEvents.randomEvent.RandomEventsCategory;
+import endytkn.randomEvents.randomEvent.RandomEventsRarity;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
@@ -13,21 +14,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.Random;
+import java.util.*;
 
 public class ZombieFightEvent extends GroupFightBaseEvent {
-    public static final String NAME = "zombie_fight";
-    private Integer minionsCount;
-    private Integer leaderCount;
-
     public ZombieFightEvent() {
         super(true);
-        this.category = RandomEventsCategories.GROUP_FIGHT;
+        categories = List.of(RandomEventsCategory.GROUP_FIGHT, RandomEventsCategory.DAY_NIGHT, RandomEventsCategory.WEATHER_CLEAR, RandomEventsCategory.WEATHER_THUNDER, RandomEventsCategory.WEATHER_RAIN);
         this.rarity = RandomEventsRarity.COMMON;
-        this.eventTag = "zombieFight";
+        this.eventTag = "zombie_fight";
     }
 
     @Override
@@ -37,8 +31,8 @@ public class ZombieFightEvent extends GroupFightBaseEvent {
 
     @Override
     public void onPrepare() {
-        minionsCount = new Random().nextInt(3 + this.playersGroup.size() * 2, 5 + this.playersGroup.size() * 2);
-        leaderCount = minionsCount / 3;
+        int minionsCount = new Random().nextInt(3 + this.playersGroup.size() * 2, 5 + this.playersGroup.size() * 2);
+        int leaderCount = minionsCount / 3;
         Map<UUID, Mob> zombieMobs = new HashMap<>();
 
         for (int i = 0; i < minionsCount; i++) {

@@ -2,6 +2,8 @@ package endytkn.randomEvents.events;
 
 import endytkn.randomEvents.eventObservers.MinecraftEventsObservers;
 import endytkn.randomEvents.randomEvent.RandomEvent;
+import endytkn.randomEvents.randomEvent.RandomEventsCategory;
+import endytkn.randomEvents.randomEvent.RandomEventsRarity;
 import endytkn.randomEvents.utils.BlockPosUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -17,14 +19,19 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class PillagerAmbushVillagerEvent extends RandomEvent {
     private Villager villager;
     private Player player;
+
     public PillagerAmbushVillagerEvent() {
-        this.eventTag = "pillagerAmbushVillager";
+        this.eventTag = "pillager_ambush_villager";
+        categories = List.of(RandomEventsCategory.DAY_MORNING, RandomEventsCategory.DAY_AFTERNOON, RandomEventsCategory.DAY_EVENING, RandomEventsCategory.WEATHER_CLEAR);
+        rarity = RandomEventsRarity.RARE;
     }
+
     private final Consumer<LivingDeathEvent> tickDeathConsumer = this::tickDeathEvent;
 
     @Override

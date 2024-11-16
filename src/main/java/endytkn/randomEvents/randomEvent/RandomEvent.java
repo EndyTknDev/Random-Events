@@ -21,21 +21,6 @@ public class RandomEvent {
     public enum RandomEventStatus {
         NOT_STARTED, PREPARING, READY, WAITING_PLAYER, FINISHING_SUCCESS, FINISHING_CANCELED, FINISHING, FINISHED
     }
-
-    public enum RandomEventsCategories {
-        STRUCTURE,
-        GROUP_FIGHT,
-        QUEST,
-        SPECIAL,
-    }
-
-    public enum RandomEventsRarity {
-        COMMON,
-        RARE,
-        EPIC,
-        LEGENDARY
-    }
-
     protected ServerLevel level;
     protected BlockPos targetBlock;
     protected List<ServerPlayer> playersGroup;
@@ -45,10 +30,10 @@ public class RandomEvent {
     protected int distanceThreshold = 650;
     protected int timeLimit = 20 * 60 * 10;
     protected int timePassed = 0;
-    public RandomEventsCategories category = RandomEventsCategories.SPECIAL;
+    public List<RandomEventsCategory> categories = List.of(RandomEventsCategory.SPECIAL);
     public RandomEventsRarity rarity = RandomEventsRarity.COMMON;
     public String title = "Random Event";
-    public String eventTag = "REEvent";
+    public String eventTag = "default_event";
 
     private final Consumer<TickEvent.PlayerTickEvent> playerTickConsumer = this::playerTick;
 
@@ -64,10 +49,10 @@ public class RandomEvent {
     }
 
     public void playerTick(TickEvent.PlayerTickEvent event) {
-        if (Minecraft.getInstance().isPaused() || event.player.isSpectator()) return;
+        if (Minecraft.getInstance().isPaused() || event.player.isSpectator() || !event.side.isServer()) return;
 
         onTimeLimit();
-        if (isNearby(event.player) && event.side.isServer() && status == RandomEventStatus.WAITING_PLAYER) {
+        if (isNearby(event.player) && status == RandomEventStatus.WAITING_PLAYER) {
             onPlayerEnter();
         }
     }

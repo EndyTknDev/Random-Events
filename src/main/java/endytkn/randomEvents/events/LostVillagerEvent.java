@@ -3,6 +3,9 @@ package endytkn.randomEvents.events;
 import endytkn.randomEvents.eventObservers.MinecraftEventsObservers;
 import endytkn.randomEvents.goals.FollowPlayerGoal;
 import endytkn.randomEvents.randomEvent.RandomEvent;
+import endytkn.randomEvents.randomEvent.RandomEventScene;
+import endytkn.randomEvents.randomEvent.RandomEventsCategory;
+import endytkn.randomEvents.randomEvent.RandomEventsRarity;
 import endytkn.randomEvents.utils.BlockPosUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -20,6 +23,7 @@ import net.minecraft.world.item.Items;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class LostVillagerEvent extends RandomEvent  {
@@ -31,7 +35,9 @@ public class LostVillagerEvent extends RandomEvent  {
     private FollowPlayerGoal followPlayerGoal;
 
     public LostVillagerEvent() {
-        this.eventTag = "lostVillager";
+        categories = List.of(RandomEventsCategory.DAY_MORNING, RandomEventsCategory.DAY_AFTERNOON, RandomEventsCategory.DAY_EVENING, RandomEventsCategory.WEATHER_CLEAR);
+        rarity = RandomEventsRarity.RARE;
+        this.eventTag = "lost_villager";
     }
 
     @Override

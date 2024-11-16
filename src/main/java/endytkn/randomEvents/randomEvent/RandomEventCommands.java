@@ -44,12 +44,11 @@ public class RandomEventCommands {
 
                                         var chunkPosition = rayTraceResult.getBlockPos().offset(0, 1, 0);
 
-                                        if (!RandomEventRegister.EVENTS_BY_TAGS.containsKey(eventTag)) return 0;
+                                        if (!RandomEventRegister.RANDOM_EVENTS.containsKey(eventTag)) return 0;
 
-                                        var newEvent = RandomEventRegister.EVENTS_BY_TAGS.get(eventTag).create();
+                                        var newEvent = RandomEventRegister.RANDOM_EVENTS.get(eventTag).create();
                                         newEvent.initEvent((ServerLevel) player.level(), chunkPosition, List.of(player));
                                         player.sendSystemMessage(Component.literal("Novo evento apareceu em " + chunkPosition.getX() + ", " + chunkPosition.getY() + ", " + chunkPosition.getZ() + " - " + newEvent.title));
-                                        RandomEventManager.addEvent(newEvent);
                                         newEvent.start();
                                     } catch (Error e) {
                                         System.out.println(e);
@@ -63,34 +62,11 @@ public class RandomEventCommands {
 
         dispatcher.register(
                 Commands.literal("startEvent")
-                        .then(Commands.argument("eventId", StringArgumentType.word())
-                                .executes(context -> {
-                                    ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
-                                    if (player == null) return 0;
-
-                                    String eventId = StringArgumentType.getString(context, "eventId");
-
-                                    switch (eventId) {
-                                        case "tryEvent":
-                                            RandomEventManager.setStatus(RandomEventManager.RandomEventManagerStatus.STARTED);
-                                            break;
-                                        default:
-                                            return 0;
-                                    }
-                                    return 1;
-                                })
-                        )
-        );
-
-        dispatcher.register(
-                Commands.literal("reloadEvents")
                         .executes(context -> {
-                            RandomEventRegister.registerEvents();
-                            context.getSource().sendSuccess(() -> Component.literal("Eventos recarregados!"), false);
+                            RandomEventManager.triggerNewEvent();
                             return 1;
                         })
         );
-
         dispatcher.register(
                 Commands.literal("removeMobs")
                         .executes(context -> {

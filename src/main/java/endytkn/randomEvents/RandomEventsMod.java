@@ -11,6 +11,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,13 +22,13 @@ import java.util.Objects;
 @Mod(RandomEventsMod.ID)
 public class RandomEventsMod {
     public static final String ID = "randomevents";
-
-    private static final Logger LOGGER = LogManager.getLogger(ID);
+    public static final Logger LOGGER = LogManager.getLogger(ID);
 
     public RandomEventsMod() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         registerEventListeners(eventBus);
-        AllEvents.register(MinecraftForge.EVENT_BUS);
+        AllEvents.registerEvents(MinecraftForge.EVENT_BUS);
+        AllEvents.registerObservers(MinecraftForge.EVENT_BUS);
     }
 
     /**
@@ -62,12 +63,5 @@ public class RandomEventsMod {
         });
     }
 
-    private void onLoadRegister(FMLLoadCompleteEvent event) {
-        LOGGER.debug("REGISTERING RANDOM EVENTS");
-        try {
-            RandomEventRegister.registerEvents();
-        } catch (Exception e) {
-            LOGGER.error("Failed to register random events", e);
-        }
-    }
+    private void onLoadRegister(FMLLoadCompleteEvent event) {}
 }

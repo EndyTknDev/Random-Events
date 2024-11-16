@@ -3,6 +3,8 @@ package endytkn.randomEvents.events;
 import endytkn.randomEvents.baseEvents.groupFight.GroupFight;
 import endytkn.randomEvents.baseEvents.groupFight.GroupFightBaseEvent;
 import endytkn.randomEvents.randomEvent.RandomEvent;
+import endytkn.randomEvents.randomEvent.RandomEventsCategory;
+import endytkn.randomEvents.randomEvent.RandomEventsRarity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -15,23 +17,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.Random;
+import java.util.*;
 
 public class SkeletonFightEvent extends GroupFightBaseEvent {
-    private int minionsCount;
-    private int leaderCount;
-
     public SkeletonFightEvent() {
         super(true);
-        this.category = RandomEventsCategories.GROUP_FIGHT;
+        categories = List.of(RandomEventsCategory.GROUP_FIGHT, RandomEventsCategory.DAY_NIGHT, RandomEventsCategory.WEATHER_CLEAR, RandomEventsCategory.WEATHER_THUNDER, RandomEventsCategory.WEATHER_RAIN);
         this.rarity = RandomEventsRarity.COMMON;
-        this.eventTag = "skeletonFight";
+        this.eventTag = "skeleton_fight";
     }
-
-    public static String name = "skeleton_fight";
 
     @Override
     public RandomEvent create() {
@@ -46,8 +40,8 @@ public class SkeletonFightEvent extends GroupFightBaseEvent {
         lightningBolt.setSecondsOnFire(0);
         level.addFreshEntity(lightningBolt);
 
-        minionsCount = 2 + playersGroup.size() * 2 + new Random().nextInt(2);
-        leaderCount = minionsCount / 3;
+        int minionsCount = 2 + playersGroup.size() * 2 + new Random().nextInt(2);
+        int leaderCount = minionsCount / 3;
 
         Map<UUID, Mob> skeletonMobs = new HashMap<>();
 
@@ -71,8 +65,8 @@ public class SkeletonFightEvent extends GroupFightBaseEvent {
                 mob.setHealth(mob.getHealth() * 2);
                 mob.setCustomName(Component.literal("Skeleton Leader"));
 
-                ItemStack helmet = new ItemStack(Items.GOLDEN_HELMET);
-                ItemStack chestplate = new ItemStack(Items.GOLDEN_CHESTPLATE);
+                ItemStack helmet = new ItemStack(Items.LEATHER_HELMET);
+                ItemStack chestplate = new ItemStack(Items.LEATHER_CHESTPLATE);
                 helmet.enchant(Enchantments.UNBREAKING, 5);
                 chestplate.enchant(Enchantments.UNBREAKING, 5);
                 this.addEntityToEvent(mob);

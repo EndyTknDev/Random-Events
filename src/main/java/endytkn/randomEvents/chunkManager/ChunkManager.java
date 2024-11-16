@@ -31,6 +31,7 @@ public class ChunkManager {
     public ChunkData initChunkData(int x, int z, int countPlacedBlocks, boolean hasBuilding) {
         this.chunkMap.putIfAbsent(x, new java.util.HashMap<>());
         return this.chunkMap.get(x).putIfAbsent(z, new ChunkData(x, z, countPlacedBlocks, hasBuilding));
+
     }
 
     public boolean hasBuildingAround(int x, int z) {

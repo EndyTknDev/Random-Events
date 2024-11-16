@@ -2,6 +2,8 @@ package endytkn.randomEvents.events;
 
 import endytkn.randomEvents.baseEvents.structure.StructureBaseEvent;
 import endytkn.randomEvents.randomEvent.RandomEvent;
+import endytkn.randomEvents.randomEvent.RandomEventsCategory;
+import endytkn.randomEvents.randomEvent.RandomEventsRarity;
 import net.minecraft.core.Vec3i;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -12,15 +14,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
+
 public class NetherPortalEvent extends StructureBaseEvent {
-
-    public static final String name = "nether_portal";
-
     public NetherPortalEvent() {
         super("minecraft", "ruined_portal/portal_2");
-        this.category = RandomEventsCategories.STRUCTURE;
+        this.categories = categories = List.of(RandomEventsCategory.STRUCTURE);
         this.rarity = RandomEventsRarity.RARE;
-        this.eventTag = "netherPortal";
+        this.eventTag = "nether_portal";
     }
 
     @Override

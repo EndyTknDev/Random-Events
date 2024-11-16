@@ -3,6 +3,8 @@ package endytkn.randomEvents.events;
 import endytkn.randomEvents.baseEvents.groupFight.GroupFight;
 import endytkn.randomEvents.baseEvents.groupFight.GroupFightBaseEvent;
 import endytkn.randomEvents.randomEvent.RandomEvent;
+import endytkn.randomEvents.randomEvent.RandomEventsCategory;
+import endytkn.randomEvents.randomEvent.RandomEventsRarity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -12,19 +14,14 @@ import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class DrownedThunderFightEvent extends GroupFightBaseEvent {
-    private int minionsCount;
-    private int leaderCount;
-    public static String name = "drowned_thunder";
-
     public DrownedThunderFightEvent() {
         super(true);
-        this.eventTag = "drownedThunderFight";
+        this.eventTag = "drowned_thunder_fight";
+        categories = List.of(RandomEventsCategory.WEATHER_THUNDER, RandomEventsCategory.WEATHER_RAIN, RandomEventsCategory.DAY_NIGHT);
+        rarity = RandomEventsRarity.COMMON;
     }
 
     @Override
@@ -34,8 +31,8 @@ public class DrownedThunderFightEvent extends GroupFightBaseEvent {
 
     @Override
     public void onPrepare() {
-        minionsCount = 4 + playersGroup.size() * 2 + new Random().nextInt(2);
-        leaderCount = minionsCount / 3;
+        int minionsCount = 4 + playersGroup.size() * 2 + new Random().nextInt(2);
+        int leaderCount = minionsCount / 3;
 
         Map<UUID, Mob> mobs = new HashMap<>();
 

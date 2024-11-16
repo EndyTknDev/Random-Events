@@ -5,6 +5,8 @@ import endytkn.randomEvents.eventObservers.MinecraftEventsObservers;
 import endytkn.randomEvents.network.PacketHandler;
 import endytkn.randomEvents.network.packages.PoofPackage;
 import endytkn.randomEvents.randomEvent.RandomEvent;
+import endytkn.randomEvents.randomEvent.RandomEventsCategory;
+import endytkn.randomEvents.randomEvent.RandomEventsRarity;
 import endytkn.randomEvents.utils.BlockPosUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
@@ -16,13 +18,13 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.monster.Illusioner;
 import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
+import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 
@@ -33,9 +35,9 @@ public class VillagerTrapEvent extends RandomEvent {
     private final Consumer<LivingDeathEvent> tickDeathConsumer = this::tickDeath;
 
     public VillagerTrapEvent() {
-        this.category = RandomEventsCategories.GROUP_FIGHT;
+        categories = List.of(RandomEventsCategory.DAY_MORNING, RandomEventsCategory.DAY_NIGHT, RandomEventsCategory.DAY_AFTERNOON, RandomEventsCategory.DAY_EVENING, RandomEventsCategory.WEATHER_CLEAR);
         this.rarity = RandomEventsRarity.COMMON;
-        this.eventTag = "villagerTrap";
+        this.eventTag = "villager_trap";
     }
 
     @Override

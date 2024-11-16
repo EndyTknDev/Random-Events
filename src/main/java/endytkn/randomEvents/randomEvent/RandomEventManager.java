@@ -2,6 +2,7 @@ package endytkn.randomEvents.randomEvent;
 
 import endytkn.randomEvents.RandomEventsMod;
 import endytkn.randomEvents.chunkManager.ChunkManagerCore;
+import endytkn.randomEvents.utils.EnvUtils;
 import endytkn.randomEvents.utils.Observer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -22,6 +23,7 @@ import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
+import org.lwjgl.system.windows.DEVMODE;
 
 import java.io.IOException;
 import java.util.*;
@@ -35,7 +37,7 @@ public class RandomEventManager {
         TICKING, STARTED, FINISHED
     }
 
-    private static final int eventInterval = 20 * 60 * 2;
+    private static final int eventInterval = 1 * 60 * 2;
     private static int eventIntervalLeft = eventInterval;
     private static RandomEventManagerStatus status = RandomEventManagerStatus.TICKING;
     private static final Observer<RandomEventManagerStatus> onChangeStatusObserver = new Observer<>();
@@ -63,7 +65,7 @@ public class RandomEventManager {
     }
 
     @SubscribeEvent
-    public static void onTick(TickEvent.ClientTickEvent event) {
+    public static void onTick(TickEvent.ServerTickEvent event) {
         Minecraft minecraft = Minecraft.getInstance();
         if (event.phase != TickEvent.Phase.START || minecraft.isPaused()) return;
         if (status == RandomEventManagerStatus.TICKING) {
@@ -78,7 +80,8 @@ public class RandomEventManager {
         setStatus(RandomEventManagerStatus.STARTED);
     }
 
-    public static void setStatus(RandomEventManagerStatus newStatus) {
+    private static void setStatus(RandomEventManagerStatus newStatus) {
+        if (EnvUtils.isDevMode()) RandomEventsMod.LOGGER.info("RE Manager Status Change: %s".formatted(newStatus));
         status = newStatus;
         onChangeStatusObserver.notify(status);
     }
@@ -102,21 +105,19 @@ public class RandomEventManager {
     private static void startEvent() {
         Map<Integer, List<ServerPlayer>> proximityGroups = groupPlayersByProximity();
         for (List<ServerPlayer> group : proximityGroups.values()) {
-            ServerPlayer player = group.get(0);
-            String biomeKey = getPlayerBiomeKey(player);
-            if (ChunkManagerCore.isLevelAvailable(player.level().dimension())) return;
-            boolean isUnderground = isPlayerUnderground(player);
-            if (isUnderground) return;
-            ChunkAccess chunk = findEventChunk(player);
-
-            if (chunk == null) continue;
-
-            BlockPos chunkPosition = findRandomChunkPosition(chunk, player.level());
-
-            RandomEvent newEvent = RandomEventChooser.getEvent(player.level(), chunkPosition, isUnderground, biomeKey, false);
-            newEvent.initEvent((ServerLevel) player.level(), chunkPosition, group);
-            newEvent.start();
-            player.sendSystemMessage(Component.literal("novo evento apareceu " + chunkPosition.getX() + ", " + chunkPosition.getY() + ", " + chunkPosition.getZ() + " " + newEvent.title));
+            try {
+                ServerPlayer player = group.get(0);
+                ChunkAccess chunk = findEventChunk(player);
+                if (chunk == null) continue;
+                BlockPos chunkPosition = findRandomChunkPosition(chunk, player.level());
+                RandomEventScene scene = new RandomEventScene((ServerLevel) player.level(), chunkPosition);
+                RandomEvent newEvent = RandomEventChooser.findRandomEventByScene(scene);
+                newEvent.initEvent((ServerLevel) player.level(), chunkPosition, group);
+                newEvent.start();
+                player.sendSystemMessage(Component.literal("novo evento apareceu " + chunkPosition.getX() + ", " + chunkPosition.getY() + ", " + chunkPosition.getZ() + " " + newEvent.title));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         setStatus(RandomEventManagerStatus.FINISHED);
     }
@@ -131,7 +132,6 @@ public class RandomEventManager {
             double randomRadius = random.nextDouble(positionMinDistance, positionMaxDistance);
             int x = (int) (randomRadius * Math.cos(angle)) + chunkPosition.getPos().x;
             int z = (int) (randomRadius * Math.sin(angle)) + chunkPosition.getPos().z;
-
             if (ChunkManagerCore.isChunkAvailable(player.level().dimension(), x, z)) {  // Lógica de verificação de construção
                 return player.level().getChunk(x, z);
             }
@@ -194,11 +194,5 @@ public class RandomEventManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static boolean isPlayerUnderground(ServerPlayer player) {
-        BlockPos playerPos = player.blockPosition();
-        Level world = player.level();
-        return world.dimensionType().hasSkyLight() && !world.canSeeSky(playerPos);
     }
 }

@@ -1,14 +1,7 @@
 package endytkn.randomEvents.randomEvent;
 
-import endytkn.randomEvents.events.ZombieSkeletonFightEvent;
-import endytkn.randomEvents.randomEvent.RandomEvent.RandomEventsRarity;
-import endytkn.randomEvents.randomEvent.RandomEvent.RandomEventsCategories;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class RandomEventChooser {
     private static final Random random = new Random();
@@ -47,16 +40,36 @@ public class RandomEventChooser {
         throw new IllegalStateException("Key not found.");
     }
 
-    public static RandomEvent getEvent(Level level, BlockPos targetBlock, boolean isUnderground, String biomeKey, boolean isNight) {
-        String categoryKey = getMapByWeight(RandomEventRegister.RANDOM_EVENTS, RandomEventRegister.RANDOM_EVENTS_CATEGORIES_WEIGHT);
-        Map<RandomEventsRarity, List<RandomEvent>> chooseCategories = RandomEventRegister.RANDOM_EVENTS.get(RandomEventsCategories.valueOf(categoryKey));
+    private static List<RandomEvent> filterEventsByCategories(RandomEventScene scene) {
+        List<RandomEventsCategory> sceneCategories = List.of(scene.getTimeCategory(), scene.getWeatherCategory());
+        System.out.println(sceneCategories);
+        return RandomEventRegister.RANDOM_EVENTS.values().stream()
+                .filter(event -> event.categories.containsAll(sceneCategories))
+                .collect(Collectors.toList());
+        /*
+        List<RandomEvent> combinedEvents = sceneCategories.stream()
+                .filter(RandomEventRegister.RANDOM_EVENTS_CATEGORIES::containsKey)
+                .flatMap(category -> RandomEventRegister.RANDOM_EVENTS_CATEGORIES.get(category).stream())
+                .collect(Collectors.toList());
+         */
+    }
 
-        if (chooseCategories == null) return new ZombieSkeletonFightEvent();
-        String rarityKey = getMapByWeight(chooseCategories, RandomEventRegister.RANDOM_EVENTS_RARITY_WEIGHT);
-        List<RandomEvent> randomEvents = chooseCategories.get(RandomEventsRarity.valueOf(rarityKey));
-        int randomIndex = random.nextInt(chooseCategories.size());
-        RandomEvent selectedEvent = randomEvents.get(randomIndex);
+    private static RandomEvent findByRarity(List<RandomEvent> events) {
+        HashMap<RandomEventsRarity, List<RandomEvent>> eventsByRarities = new HashMap<>();
+        for (RandomEvent event: events) {
+            eventsByRarities.putIfAbsent(event.rarity, new ArrayList<>());
+            eventsByRarities.get(event.rarity).add(event);
+        }
+        String rarity = getMapByWeight(eventsByRarities, RandomEventRegister.RANDOM_EVENTS_RARITY_WEIGHT);
+        List<RandomEvent> selectedEvents = eventsByRarities.get(RandomEventsRarity.valueOf(rarity));
+        int randomIndex = random.nextInt(selectedEvents.size());
+        return selectedEvents.get(randomIndex);
+    }
 
-        return selectedEvent.create();
+    public static RandomEvent findRandomEventByScene(RandomEventScene scene) {
+        List<RandomEvent> events = filterEventsByCategories(scene);
+        RandomEvent randomEvent = findByRarity(events);
+
+        return randomEvent.create();
     }
 }

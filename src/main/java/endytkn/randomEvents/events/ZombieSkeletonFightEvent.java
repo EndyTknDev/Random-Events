@@ -3,6 +3,8 @@ package endytkn.randomEvents.events;
 import endytkn.randomEvents.baseEvents.groupFight.GroupFight;
 import endytkn.randomEvents.baseEvents.groupFight.GroupFightBaseEvent;
 import endytkn.randomEvents.randomEvent.RandomEvent;
+import endytkn.randomEvents.randomEvent.RandomEventsCategory;
+import endytkn.randomEvents.randomEvent.RandomEventsRarity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -10,17 +12,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class ZombieSkeletonFightEvent extends GroupFightBaseEvent {
-    public static final String NAME = "zombie_skeleton_fight";
-
     public ZombieSkeletonFightEvent() {
         super(true);
-        this.category = RandomEventsCategories.GROUP_FIGHT;
+        categories = List.of(RandomEventsCategory.GROUP_FIGHT, RandomEventsCategory.DAY_NIGHT, RandomEventsCategory.WEATHER_CLEAR, RandomEventsCategory.WEATHER_RAIN, RandomEventsCategory.WEATHER_THUNDER);
         this.rarity = RandomEventsRarity.COMMON;
-        this.eventTag = "zombieSkeletonFight";
+        this.eventTag = "zombie_skeleton_fight";
     }
 
     @Override
